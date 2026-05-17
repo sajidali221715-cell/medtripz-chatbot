@@ -6,14 +6,9 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 import 'widgets/loading_widget.dart';
 
-/// CHANGE THIS IP IF YOUR WIFI IP CHANGES
-/// Run: ipconfig
-/// Use your IPv4 address
+/// LIVE VERCEL CHATBOT URL
 const String _chatbotHost =
-    String.fromEnvironment(
-      'CHATBOT_URL',
-      defaultValue: 'http://192.168.1.3:3000',
-    );
+    'https://medtripz-chatbot-7krv.vercel.app';
 
 const String _chatbotPath = '/';
 const String _chatbotUrl = '$_chatbotHost$_chatbotPath';
@@ -50,7 +45,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
+      ..setBackgroundColor(const Color(0xFF050816))
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (progress) {
@@ -66,7 +61,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             });
           },
 
-          onPageFinished: (_) {
+          onPageFinished: (_) async {
             setState(() {
               _isLoading = false;
             });
@@ -107,7 +102,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         uri.scheme == 'sms' ||
         uri.scheme == 'intent') {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
       }
 
       return NavigationDecision.prevent;
@@ -115,7 +113,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     if (!['http', 'https'].contains(uri.scheme)) {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
       }
 
       return NavigationDecision.prevent;
@@ -150,13 +151,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       _errorMessage = '';
     });
 
-    _controller.reload();
+    _controller.loadRequest(Uri.parse(_chatbotUrl));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF050816),
 
       body: SafeArea(
         child: WillPopScope(
@@ -171,7 +172,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               if (_isLoading || _hasError)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black,
+                    color: const Color(0xFF050816),
 
                     child: Center(
                       child: _hasError
@@ -208,36 +209,37 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
         children: [
           const Icon(
-            Icons.wifi_off,
+            Icons.wifi_off_rounded,
             color: Colors.white70,
-            size: 80,
+            size: 90,
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           const Text(
             'Connection Error',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 28,
+              fontSize: 30,
               fontWeight: FontWeight.bold,
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           Text(
             _errorMessage.isNotEmpty
                 ? _errorMessage
-                : 'Unable to connect to chatbot.',
+                : 'Unable to connect to MedTripz AI.',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
+              height: 1.5,
             ),
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 32),
 
           ElevatedButton(
             onPressed: _reloadPage,
@@ -245,9 +247,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00D1B2),
               foregroundColor: Colors.black,
+              elevation: 0,
               padding: const EdgeInsets.symmetric(
-                horizontal: 36,
-                vertical: 16,
+                horizontal: 40,
+                vertical: 18,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(40),
@@ -284,16 +287,16 @@ class _AppHeader extends StatelessWidget {
       ),
 
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(22),
+        color: Colors.black.withOpacity(0.72),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white12,
+          color: Colors.white10,
         ),
         boxShadow: const [
           BoxShadow(
             color: Colors.black54,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            blurRadius: 16,
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -301,8 +304,8 @@ class _AppHeader extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 54,
+            height: 54,
 
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
@@ -315,9 +318,9 @@ class _AppHeader extends StatelessWidget {
             ),
 
             child: const Icon(
-              Icons.health_and_safety,
+              Icons.health_and_safety_rounded,
               color: Colors.white,
-              size: 28,
+              size: 30,
             ),
           ),
 
@@ -326,6 +329,8 @@ class _AppHeader extends StatelessWidget {
           Expanded(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
 
               style: const TextStyle(
                 color: Colors.white,
