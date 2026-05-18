@@ -2,21 +2,35 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// ── Abusive Language Detection ─────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Abusive Language Detection
+// ─────────────────────────────────────────────────────────────
+
 const ABUSIVE_WORDS = [
-  'fuck', 'fucker', 'fucking', 'shit', 'bastard', 'bitch',
-  'asshole', 'madarchod', 'behenchod', 'chutiya',
+  'fuck',
+  'fucker',
+  'fucking',
+  'shit',
+  'bastard',
+  'bitch',
+  'asshole',
+  'madarchod',
+  'behenchod',
+  'chutiya',
 ];
 
 function isAbusive(text: string): boolean {
   const lowerText = text.toLowerCase();
 
-  return ABUSIVE_WORDS.some(word =>
+  return ABUSIVE_WORDS.some((word) =>
     new RegExp(`\\b${word}\\b`, 'i').test(lowerText)
   );
 }
 
-// ── Response Cleaning ─────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Response Cleaner
+// ─────────────────────────────────────────────────────────────
+
 function cleanResponse(text: string): string {
   return text
     .replace(/#{1,6}\s+/g, '')
@@ -28,24 +42,39 @@ function cleanResponse(text: string): string {
     .trim();
 }
 
-// ── Suggestions ───────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Suggestions
+// ─────────────────────────────────────────────────────────────
+
 const SUGGESTIONS = {
   en: [
-    "👨‍⚕️ Find Doctor",
-    "🏥 Hospitals",
-    "📅 Book Appointment"
+    '👨‍⚕️ Find Doctor',
+    '🏥 Hospitals',
+    '💰 Treatment Cost',
+    '📅 Book Appointment',
+    '🛂 Medical Visa',
   ],
+
   hi: [
-    "👨‍⚕️ Doctor Dhundho",
-    "🏥 Hospital Dekho",
-    "📅 Appointment Book Karo"
+    '👨‍⚕️ Doctor Dhundho',
+    '🏥 Hospital Dekho',
+    '💰 Treatment Cost',
+    '📅 Appointment Book Karo',
+    '🛂 Medical Visa',
   ],
+
   ar: [
-    "👨‍⚕️ ابحث عن طبيب",
-    "🏥 المستشفيات",
-    "📅 حجز موعد"
-  ]
+    '👨‍⚕️ ابحث عن طبيب',
+    '🏥 المستشفيات',
+    '💰 تكلفة العلاج',
+    '📅 حجز موعد',
+    '🛂 تأشيرة طبية',
+  ],
 };
+
+// ─────────────────────────────────────────────────────────────
+// POST API
+// ─────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
@@ -53,56 +82,146 @@ export async function POST(req: Request) {
 
     if (!message?.trim()) {
       return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
+        {
+          error: 'Message is required',
+        },
+        {
+          status: 400,
+        }
       );
     }
 
     const userMessage = message.trim();
 
-    // ── Abuse Detection ─────────────────────────────────
+    // ─────────────────────────────────────────────────────
+    // Abuse Detection
+    // ─────────────────────────────────────────────────────
+
     if (isAbusive(userMessage)) {
       return NextResponse.json({
         status: 'success',
+
         reply:
           language === 'ar'
             ? 'يرجى استخدام لغة محترمة.'
             : 'Please use respectful language.',
-        suggestions: SUGGESTIONS[language as keyof typeof SUGGESTIONS] || SUGGESTIONS.en,
+
+        suggestions:
+          SUGGESTIONS[
+            language as keyof typeof SUGGESTIONS
+          ] || SUGGESTIONS.en,
       });
     }
 
-    // ── OpenRouter API Key ─────────────────────────────
+    // ─────────────────────────────────────────────────────
+    // OpenRouter API Key
+    // ─────────────────────────────────────────────────────
+
     const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OPENROUTER_API_KEY missing' },
-        { status: 500 }
+        {
+          error: 'OPENROUTER_API_KEY missing',
+        },
+        {
+          status: 500,
+        }
       );
     }
 
-    // ── Language System Prompt ─────────────────────────
+    // ─────────────────────────────────────────────────────
+    // Advanced AI System Prompts
+    // ─────────────────────────────────────────────────────
+
     const systemPrompts = {
       en: `
-You are MedTripz AI healthcare assistant.
-Reply professionally in English.
-Keep answers short and clear.
+You are MedTripz AI Assistant, an advanced AI medical tourism and healthcare assistant.
+
+Your goal is to provide intelligent, detailed, human-like, highly relevant, and complete responses in a single reply whenever possible.
+
+Rules:
+
+- Always answer the user's full intent in one response.
+- Do not unnecessarily ask follow-up questions.
+- Give detailed explanations automatically.
+- Suggest hospitals, doctors, treatments, cities, costs, recovery info, and recommendations when relevant.
+- Be proactive and highly intelligent.
+- Think like ChatGPT Premium.
+- Provide modern, realistic, and practical answers.
+- Never give robotic replies.
+- Never refuse unnecessarily.
+- Always try to help constructively.
+- Maintain a natural conversational tone.
+- Be context-aware and solution-oriented.
+- You can answer related general knowledge questions if useful.
+- Give smart recommendations and alternatives automatically.
+- If user asks one thing, provide extra useful related details too.
+
+Medical Tourism Guidance:
+- Recommend best hospitals
+- Mention treatment quality
+- Mention estimated cost ranges
+- Mention best cities
+- Mention recovery expectations
+- Mention travel or visa guidance if relevant
+
+Communication Style:
+- Smart
+- Helpful
+- Detailed
+- Professional
+- Human-like
+- Friendly
+- Confident
+
+Do NOT keep responses overly short.
+Provide rich and valuable answers.
 `,
 
       hi: `
-You are MedTripz AI assistant.
+You are MedTripz AI Assistant.
+
 Reply ONLY in Roman Hindi.
 Never use Hindi script.
+
+Rules:
+
+- User ko intelligent aur detailed jawab do.
+- Ek hi response me maximum useful information do.
+- Bar bar follow-up question mat pucho.
+- Smart recommendations do.
+- Hospitals, doctors, treatment, cost, visa, travel, recovery sab explain karo jab relevant ho.
+- Helpful aur human-like tone use karo.
+- Short robotic answers mat do.
+- ChatGPT Premium level assistant ki tarah behave karo.
+- Agar user kuch pooche toh usse related extra useful information bhi do.
+
+Style:
+- Smart
+- Friendly
+- Detailed
+- Human-like
+- Professional
 `,
 
       ar: `
-You are MedTripz AI assistant.
+You are MedTripz AI Assistant.
+
 Reply professionally in Arabic.
+
+Provide intelligent, detailed, complete, and helpful responses.
+
+Do not unnecessarily ask too many follow-up questions.
+
+Always try to give complete healthcare and medical tourism guidance in one reply whenever possible.
 `,
     };
 
-    // ── OpenRouter Request ────────────────────────────
+    // ─────────────────────────────────────────────────────
+    // OpenRouter API Request
+    // ─────────────────────────────────────────────────────
+
     const response = await fetch(
       'https://openrouter.ai/api/v1/chat/completions',
       {
@@ -116,11 +235,12 @@ Reply professionally in Arabic.
         },
 
         body: JSON.stringify({
-          model: 'openrouter/free',
+          model: 'openai/gpt-4o-mini',
 
           messages: [
             {
               role: 'system',
+
               content:
                 systemPrompts[
                   language as keyof typeof systemPrompts
@@ -133,7 +253,15 @@ Reply professionally in Arabic.
             },
           ],
 
-          temperature: 0.4,
+          temperature: 1,
+
+          max_tokens: 2000,
+
+          top_p: 1,
+
+          frequency_penalty: 0.2,
+
+          presence_penalty: 0.3,
         }),
       }
     );
@@ -154,7 +282,9 @@ Reply professionally in Arabic.
 
     return NextResponse.json({
       status: 'success',
+
       reply: botReply,
+
       suggestions:
         SUGGESTIONS[
           language as keyof typeof SUGGESTIONS
@@ -168,10 +298,16 @@ Reply professionally in Arabic.
         error: 'Internal Server Error',
         details: error.message,
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// GET API
+// ─────────────────────────────────────────────────────────────
 
 export async function GET() {
   return NextResponse.json({
